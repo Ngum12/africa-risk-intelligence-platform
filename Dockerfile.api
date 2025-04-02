@@ -1,0 +1,19 @@
+# Dockerfile.api - FastAPI Backend
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY backend/ ./backend/
+COPY data/ ./data/
+COPY conflict_model_final.pkl ./
+COPY encoders/ ./encoders/
+
+WORKDIR /app/backend
+
+RUN pip install --no-cache-dir fastapi uvicorn pandas scikit-learn joblib textblob newspaper3k beautifulsoup4 lxml
+
+# Download TextBlob corpora
+RUN python -m textblob.download_corpora
+
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

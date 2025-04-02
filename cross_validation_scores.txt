@@ -1,0 +1,8 @@
+5-Fold Cross Validation (F1 Score):
+Fold 1: 1.0000
+Fold 2: 1.0000
+Fold 3: 1.0000
+Fold 4: 1.0000
+Fold 5: 1.0000
+
+Average F1 Score: 1.0000
