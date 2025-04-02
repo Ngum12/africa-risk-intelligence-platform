@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Nigeria",
+        "ISO_A2": "NG"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[3, 7], [4, 7], [14, 14], [14, 4], [3, 4], [3, 7]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Egypt",
+        "ISO_A2": "EG"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[25, 22], [35, 22], [35, 31], [25, 31], [25, 22]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "South Africa",
+        "ISO_A2": "ZA"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[18, -34], [32, -34], [32, -22], [18, -22], [18, -34]]]
+      }
+    }
+  ]
+}

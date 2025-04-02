@@ -7,41 +7,158 @@ import RiskApi from '../services/apiService';
 // Mock data for testing
 const MOCK_MEDIA_DATA = {
   query: {
-    location: "Demo Location",
-    keywords: ["demo"],
+    location: "Northern Nigeria",
+    keywords: ["conflict", "Boko Haram"],
     timeframe: "Past 30 days"
   },
   updated_at: new Date().toISOString(),
-  sentiment_score: -0.2,
+  sentiment_score: -0.6,
   risk_indicators: {
-    overall_risk_level: "medium",
-    sentiment_trend: "stable",
-    key_concerns: ["Demo concern 1", "Demo concern 2"],
-    credibility_score: 0.8
+    overall_risk_level: "high",
+    sentiment_trend: "deteriorating",
+    key_concerns: [
+      "Violence against civilians", 
+      "Increased militant activity", 
+      "Humanitarian crisis"
+    ],
+    credibility_score: 0.85
   },
   news_articles: [
     {
-      title: "Demo Article",
-      source: "Demo News",
-      publication_date: new Date().toISOString(),
-      description: "This is a demo article for testing.",
+      title: "Heightened Security Concerns Following Recent Attacks in Maiduguri",
+      source: "Africa Security Review",
+      publication_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      description: "Local authorities have implemented additional security measures following a series of coordinated attacks in the outskirts of Maiduguri. At least 12 civilians were reportedly affected by the incident.",
+      sentiment: "negative",
+      url: "https://example.com/news/1"
+    },
+    {
+      title: "Humanitarian Organizations Respond to Growing Crisis in Northeast Region",
+      source: "Global Aid Monitor",
+      publication_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      description: "International aid groups have mobilized resources in response to the deteriorating situation in Nigeria's northeastern regions, with estimates suggesting over 50,000 people have been displaced in recent months.",
+      sentiment: "slightly negative",
+      url: "https://example.com/news/2"
+    },
+    {
+      title: "Regional Security Summit Addresses Cross-Border Threats",
+      source: "Continental Affairs",
+      publication_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      description: "Leaders from neighboring countries met to discuss coordinated responses to security challenges affecting the Lake Chad Basin. The summit focused on intelligence sharing and joint operations.",
       sentiment: "neutral",
-      url: "#"
+      url: "https://example.com/news/3"
+    },
+    {
+      title: "Military Reports Strategic Gains in Northeastern Campaign",
+      source: "Defense Monitor",
+      publication_date: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+      description: "Government forces claim to have recaptured several key areas previously under militant control. Officials report the operation has disrupted supply lines used by insurgent groups.",
+      sentiment: "slightly positive",
+      url: "https://example.com/news/4"
     }
   ],
-  video_content: [],
-  social_media_trends: {
-    trending_hashtags: ["DemoTag1", "DemoTag2"],
-    hashtag_volume: { "DemoTag1": 50, "DemoTag2": 30 },
-    sentiment_distribution: {
-      negative: 0.3,
-      neutral: 0.5,
-      positive: 0.2
+  video_content: [
+    {
+      title: "Footage Shows Aftermath of Recent Incident in Borno State",
+      platform: "YouTube",
+      channel: "Africa News Network",
+      publication_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      url: "https://example.com/videos/1",
+      thumbnail_url: "https://via.placeholder.com/320x180?text=Conflict+Scene",
+      views: 245763,
+      duration: "5:42",
+      sentiment: "negative",
+      verified: true,
+      engagement: {
+        likes: 12400,
+        comments: 3580,
+        shares: 8900
+      }
     },
-    trending_topics: ["Demo Topic 1", "Demo Topic 2"],
-    key_influencers: []
+    {
+      title: "Eyewitness Accounts from Displaced Villagers Near Maiduguri",
+      platform: "Vimeo",
+      channel: "Human Rights Watch",
+      publication_date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      url: "https://example.com/videos/2",
+      thumbnail_url: "https://via.placeholder.com/320x180?text=Eyewitness+Reports",
+      views: 112890,
+      duration: "9:17",
+      sentiment: "negative",
+      verified: true,
+      engagement: {
+        likes: 7500,
+        comments: 1340,
+        shares: 5200
+      }
+    },
+    {
+      title: "Analysis: Understanding the Current Security Dynamics in Nigeria",
+      platform: "YouTube",
+      channel: "Conflict Studies Center",
+      publication_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+      url: "https://example.com/videos/3",
+      thumbnail_url: "https://via.placeholder.com/320x180?text=Security+Analysis",
+      views: 87659,
+      duration: "14:05",
+      sentiment: "neutral",
+      verified: true,
+      engagement: {
+        likes: 5900,
+        comments: 870,
+        shares: 2100
+      }
+    }
+  ],
+  social_media_trends: {
+    trending_hashtags: [
+      "NigeriaConflict", 
+      "BornoSecurity", 
+      "NortheastCrisis", 
+      "MaiduguriAttack", 
+      "HumanitarianAid"
+    ],
+    hashtag_volume: { 
+      "NigeriaConflict": 75, 
+      "BornoSecurity": 62, 
+      "NortheastCrisis": 48, 
+      "MaiduguriAttack": 41, 
+      "HumanitarianAid": 29
+    },
+    sentiment_distribution: {
+      negative: 0.65,
+      neutral: 0.25,
+      positive: 0.1
+    },
+    trending_topics: [
+      "Recent attacks on villages near Maiduguri", 
+      "Military response to insurgent activities",
+      "Humanitarian situation in displaced persons camps",
+      "International response to regional security concerns",
+      "Impact on civilian population in conflict zones"
+    ],
+    key_influencers: [
+      {
+        name: "Nigeria Security Analysis",
+        handle: "@NigeriaSecurity",
+        followers: 245000,
+        recent_post: "Our latest assessment shows concerning patterns of escalation in northeastern regions. New report available on our website. #NigeriaConflict"
+      },
+      {
+        name: "Africa Crisis Reporter",
+        handle: "@AfricaCrisis",
+        followers: 187000,
+        recent_post: "Breaking: New reports of incidents in villages 30km outside Maiduguri. Local sources confirming at least 15 affected. Details emerging. #BornoSecurity"
+      },
+      {
+        name: "Humanitarian Watch",
+        handle: "@HumWatch",
+        followers: 163000,
+        recent_post: "Our teams on the ground report critical shortages of supplies in northeastern displacement camps. Situation deteriorating rapidly. #HumanitarianAid"
+      }
+    ]
   },
-  summary: "This is a demo summary for testing the component."
+  summary: "Media analysis for Northern Nigeria reveals heightened concern regarding security incidents in Borno State, particularly around Maiduguri. News coverage over the past month has focused on recent attacks, humanitarian challenges, and military operations. Social media sentiment is predominantly negative (65%), with trending topics centered on security incidents and humanitarian needs. Video evidence from the region corroborates reports of increased militant activity and civilian displacement."
 };
 
 export default function MediaIntelligencePanel({ hotspotId }) {
