@@ -1,17 +1,27 @@
-version: "3.8"
-services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    ports:
-      - "8000:8000"
-    restart: always
+version: '3.8'
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
+services:
+  frontend:
+    build: 
+      context: ./frontend
     ports:
-      - "5173:4173"
-    restart: always
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:8080
+
+  backend:
+    build: 
+      context: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    environment:
+      - DEBUG=True
+      - ALLOW_ORIGIN=http://localhost:3000
+
+volumes:
+  backend_data:
