@@ -2,8 +2,20 @@ import axios from 'axios';
 
 // Set base URL for API requests - handle environment variables safely for the browser
 const API_BASE_URL = window.ENV_API_BASE_URL || 
-                    (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE_URL) || 
-                    'http://localhost:8080'; // Default fallback
+                   (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE_URL) || 
+                   'http://localhost:8080'; // Default fallback
+
+// Safe URL encoding function
+const safeEncodeURI = (uri) => {
+  try {
+    // First decode to ensure we don't double-encode
+    const decoded = decodeURI(uri);
+    return encodeURI(decoded);
+  } catch (e) {
+    // If there's an error, just encode the original
+    return encodeURI(uri);
+  }
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,6 +23,28 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
+});
+
+// Add request interceptor to properly encode URLs
+api.interceptors.request.use(config => {
+  // Make sure URL is properly encoded to prevent malformed URI errors
+  if (config.url) {
+    // Only encode the path portion, not the full URL with protocol
+    const url = config.url;
+    // Don't double-encode already encoded URLs
+    if (!url.includes('%')) {
+      config.url = url
+        .split('/')
+        .map(segment => segment.includes('?') 
+          ? segment.split('?').map((part, i) => i === 0 ? encodeURIComponent(part) : part).join('?')
+          : encodeURIComponent(segment)
+        )
+        .join('/');
+    }
+  }
+  return config;
+}, error => {
+  return Promise.reject(error);
 });
 
 // Custom error handling for API responses
@@ -40,9 +74,22 @@ export const RiskApi = {
   
   // Get media intelligence for a specific hotspot
   getMediaIntelligence: (hotspotId) => {
-    return api.get(`/api/media-intelligence/${hotspotId}`);
+    if (!hotspotId) {
+      return Promise.reject({
+        friendlyMessage: "Invalid hotspot ID"
+      });
+    }
+    // Convert to string and ensure properly encoded
+    const id = String(hotspotId).trim();
+    return api.get(`/media-intelligence/${id}`);
   },
-  
+
+  // Get media intelligence data for multiple hotspots
+  getBatchMediaIntelligence: (hotspotIds) => {
+    // Send as JSON body, no need to encode
+    return api.post('/media-intelligence/batch', { hotspotIds });
+  },
+
   // Get model metrics
   getModelMetrics: () => {
     return api.get('/api/model/metrics');
@@ -84,7 +131,10 @@ export const RiskApi = {
   
   // Compare model versions
   compareModelVersions: (version1, version2) => {
-    return api.get(`/api/model/compare?v1=${version1}&v2=${version2}`);
+    // Encode version parameters
+    const v1 = encodeURIComponent(String(version1));
+    const v2 = encodeURIComponent(String(version2));
+    return api.get(`/api/model/compare?v1=${v1}&v2=${v2}`);
   },
   
   // Get detailed model performance metrics
@@ -100,15 +150,42 @@ export const RiskApi = {
   // Verify that model retraining was successful
   verifyModelRetraining: () => {
     return api.get('/model/verify-retraining');
+  },
+
+  // Get video analysis
+  getVideoAnalysis: (videoId) => {
+    if (!videoId) {
+      return Promise.reject({
+        friendlyMessage: "Invalid video ID"
+      });
+    }
+    // Convert to string and trim to prevent encoding issues
+    const id = String(videoId).trim();
+    return api.get(`/video-analysis/${id}`);
+  },
+  
+  // Get training log file contents
+  getTrainingLogFile: (lines = 50) => {
+    return api.get(`/model/training-log-file?lines=${lines}`);
+  },
+  
+  // Get retraining history
+  getRetrainingHistory: () => {
+    return api.get('/model/retraining-history');
   }
 };
 
 // Create a WebSocket connection for real-time model training updates
 export const createModelTrainingSocket = () => {
-  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsHost = API_BASE_URL.replace(/^https?:\/\//, '');
-  
-  return new WebSocket(`${wsProtocol}//${wsHost}/ws/model-training`);
+  try {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = API_BASE_URL.replace(/^https?:\/\//, '');
+    
+    return new WebSocket(`${wsProtocol}//${wsHost}/ws/model-training`);
+  } catch (e) {
+    console.error("Failed to create WebSocket connection:", e);
+    return null;
+  }
 };
 
 export default RiskApi;

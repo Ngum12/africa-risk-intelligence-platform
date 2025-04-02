@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from predict import make_prediction
 from retrain import retrain_model_from_csv
 import shutil
@@ -9,6 +9,9 @@ import os
 from fastapi.responses import JSONResponse
 from media_signals import media_signals
 import logging
+from media_intelligence import get_media_intelligence
+import json
+from datetime import datetime
 
 app = FastAPI(title="Africa Conflict Risk API", description="Predict conflict risk and retrain with new data")
 
@@ -509,4 +512,45 @@ async def get_training_log_file(lines: int = 50):
         }
     except Exception as e:
         logger.error(f"Error reading training log file: {str(e)}")
+        return {"error": str(e)}
+
+# Add this endpoint to your app
+@app.get("/media-intelligence/{hotspot_id}")
+async def get_hotspot_media_intelligence(hotspot_id: str, days: int = 30):
+    try:
+        # In production, you'd look up the hotspot in a database
+        # For demo, create a fake hotspot based on ID
+        hotspot_map = {
+            "1": {"country": "Nigeria", "keywords": ["Boko Haram"]},
+            "2": {"country": "Somalia", "keywords": ["Al-Shabaab"]},
+            "3": {"country": "Ethiopia", "keywords": ["Tigray", "conflict"]},
+            "4": {"country": "Sudan", "keywords": ["Darfur"]},
+            "5": {"country": "Mali", "keywords": ["JNIM", "terrorism"]}
+        }
+        
+        # Get hotspot info or default to Nigeria
+        hotspot = hotspot_map.get(hotspot_id, {"country": "Nigeria", "keywords": []})
+        
+        # Get media intelligence
+        intelligence = get_media_intelligence(hotspot["country"], hotspot["keywords"])
+        
+        # Add metadata
+        intelligence["hotspot_id"] = hotspot_id
+        intelligence["requested_at"] = datetime.now().isoformat()
+        
+        return intelligence
+    except Exception as e:
+        logger.error(f"Error retrieving media intelligence: {str(e)}")
+        return {"error": str(e)}
+
+# Add a batch endpoint for multiple hotspots
+@app.post("/media-intelligence/batch")
+async def get_batch_media_intelligence(hotspot_ids: List[str]):
+    try:
+        results = {}
+        for hotspot_id in hotspot_ids:
+            results[hotspot_id] = await get_hotspot_media_intelligence(hotspot_id)
+        return results
+    except Exception as e:
+        logger.error(f"Error in batch media intelligence: {str(e)}")
         return {"error": str(e)}

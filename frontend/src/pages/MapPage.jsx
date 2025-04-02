@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import HotspotMap from '../components/HotspotMap';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
-import { FaExclamationTriangle, FaNewspaper, FaChartLine, FaInfoCircle, FaFilter, FaTimes, FaChevronLeft, FaChevronRight, FaSatellite, FaGlobeAfrica, FaSearch, FaShieldAlt, FaDatabase, FaBrain } from 'react-icons/fa';
+import { FaExclamationTriangle, FaNewspaper, FaChartLine, FaInfoCircle, FaFilter, FaTimes, FaChevronLeft, FaChevronRight, FaSatellite, FaGlobeAfrica, FaSearch, FaShieldAlt, FaDatabase, FaBrain, FaVideo } from 'react-icons/fa';
 import RiskApi from '../services/apiService';
+import MediaIntelligencePanel from '../components/MediaIntelligencePanel';
+import VideoAnalysisPanel from '../components/VideoAnalysisPanel';
 
 export default function MapPage() {
   const mapContainerRef = useRef(null);
@@ -26,6 +28,8 @@ export default function MapPage() {
   });
   const [refreshingData, setRefreshingData] = useState(false);
   const [showModelMonitor, setShowModelMonitor] = useState(false);
+  const [videoAnalysis, setVideoAnalysis] = useState(null);
+  const [showVideoAnalysis, setShowVideoAnalysis] = useState(false);
   
   // Fetch hotspot data from the model API
   useEffect(() => {
@@ -213,6 +217,20 @@ const retrainModel = async () => {
   // Get unique event types for the filter dropdown
   const eventTypes = [...new Set(hotspots.map(h => h.eventType))];
 
+  // Add this method to fetch video analysis
+  const fetchVideoAnalysis = async (videoId) => {
+    setIsLoading(true);
+    try {
+      const response = await RiskApi.getVideoAnalysis(videoId);
+      setVideoAnalysis(response.data);
+    } catch (error) {
+      console.error("Failed to fetch video analysis:", error);
+      toast.error("Failed to load video analysis");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
       {/* Dramatic visual overlay for aesthetic effect */}
@@ -398,6 +416,74 @@ const retrainModel = async () => {
       
       {/* Your existing filter panels, info panels, etc. */}
       {/* ... */}
+
+      {/* Add this to your JSX in the details panel when a hotspot is selected */}
+      {showDetails && selectedHotspot && (
+        <div className="absolute right-0 top-0 w-96 h-full z-10 flex flex-col bg-gray-900/90 backdrop-blur-sm overflow-auto">
+          <div className="flex justify-between p-4 border-b border-gray-800">
+            <h2 className="text-xl font-bold">Hotspot Details</h2>
+            <button 
+              onClick={() => setShowDetails(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <FaTimes />
+            </button>
+          </div>
+          <div className="flex-grow p-4 overflow-auto">
+            {/* Existing hotspot details here */}
+            
+            {/* Add the Media Intelligence Panel */}
+            <div className="mt-6">
+              <MediaIntelligencePanel hotspotId={selectedHotspot.id} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add a button to the media items to show video analysis */}
+      {mediaItems.map((item, index) => (
+        <div key={index} className="mb-4 bg-gray-800/70 rounded overflow-hidden">
+          <div className="p-3">
+            <h3 className="text-lg font-bold">{item.title}</h3>
+            <div className="text-sm text-gray-400">{item.source} • {item.date}</div>
+            
+            <p className="mt-2 text-sm">{item.content}</p>
+            
+            {/* Add condition to show video analysis button for videos */}
+            {item.type === 'video' && (
+              <button
+                onClick={() => {
+                  fetchVideoAnalysis(item.id);
+                  setShowVideoAnalysis(true);
+                }}
+                className="mt-3 text-sm bg-blue-900/60 hover:bg-blue-800 px-3 py-1 rounded flex items-center"
+              >
+                <FaVideo className="mr-1" /> View Video Analysis
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* Add a modal for showing the video analysis */}
+      {showVideoAnalysis && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-bold">Video Analysis</h2>
+              <button 
+                className="text-gray-400 hover:text-white"
+                onClick={() => setShowVideoAnalysis(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="p-4">
+              <VideoAnalysisPanel videoData={videoAnalysis} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
