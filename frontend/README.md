@@ -1,6 +1,6 @@
 # 🌍 AFRICA RISK INTELLIGENCE PLATFORM (ARIP)
 
-![Africa Risk Intelligence Platform](https://i.imgur.com/8YtQZW1.png)
+![Image](https://github.com/user-attachments/assets/fb2d53fd-f491-4951-8111-7f9740996f46)
 
 ## 🚀 Transforming Continental Risk Assessment Through AI-Powered Intelligence
 
