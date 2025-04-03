@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../services/config';
 
 export default function Form({ onResult }) {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export default function Form({ onResult }) {
     const fetchCategories = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:8080/categories');
+        const response = await fetch(`${API_URL}/categories`);
         if (!response.ok) {
           throw new Error(`Failed to fetch categories: ${response.status}`);
         }
@@ -55,7 +56,7 @@ export default function Form({ onResult }) {
       if (!formData.country) return;
       
       try {
-        const response = await fetch(`http://localhost:8080/categories`);
+        const response = await fetch(`${API_URL}/categories`);
         if (!response.ok) {
           throw new Error(`Failed to fetch regions: ${response.status}`);
         }
@@ -95,7 +96,7 @@ export default function Form({ onResult }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/predict', {
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

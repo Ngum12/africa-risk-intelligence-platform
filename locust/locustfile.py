@@ -4,7 +4,7 @@ import random
 class MLModelUser(HttpUser):
     wait_time = between(1, 3)
 
-    @task
+    @task(3)  # Higher weight for this common task
     def predict_risk(self):
         payload = {
             "country": "Nigeria",
@@ -16,3 +16,19 @@ class MLModelUser(HttpUser):
             "year": 2025
         }
         self.client.post("/predict", json=payload)
+    
+    @task
+    def get_dashboard_data(self):
+        self.client.get("/dashboard-data")
+        
+    @task
+    def get_model_info(self):
+        self.client.get("/model-info")
+        
+    @task
+    def get_categories(self):
+        self.client.get("/categories")
+        
+    @task
+    def health_check(self):
+        self.client.get("/api/health")

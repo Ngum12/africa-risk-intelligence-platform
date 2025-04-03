@@ -3,7 +3,8 @@ import {
   BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import apiClient from '../services/api';
+import { fetchDashboardData, fetchModelInfo } from '../services/api';
+import { checkApiStatus } from '../services/apiStatus';
 import HotspotMap from '../components/HotspotMap';
 
 export default function Dashboard() {
@@ -15,26 +16,45 @@ export default function Dashboard() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
   
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    async function loadData() {
       setIsLoading(true);
       try {
+        // Check API status first
+        const status = await checkApiStatus();
+        if (!status.ok) {
+          setError("Backend API is unavailable. Please try again later.");
+          return;
+        }
+        
+        // Now fetch data
         const [dashboardResponse, modelInfoResponse] = await Promise.all([
-          apiClient.get('/dashboard-data'),
-          apiClient.get('/model-info')
+          fetchDashboardData(),
+          fetchModelInfo()
         ]);
         
-        setDashboardData(dashboardResponse.data.data);
-        setModelInfo(modelInfoResponse.data.model_info);
+        // Add logging to see what's coming back
+        console.log("Dashboard data received:", dashboardResponse);
+        console.log("Model info received:", modelInfoResponse);
+        
+        // Check if the data has the expected structure
+        if (!dashboardResponse.data) {
+          console.error("Dashboard data missing 'data' property:", dashboardResponse);
+          setError("Invalid data format received from backend");
+          return;
+        }
+        
+        setDashboardData(dashboardResponse.data);
+        setModelInfo(modelInfoResponse.model_info);
         setError(null);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
+      } catch (error) {
+        console.error("Data loading error:", error);
         setError("Failed to load dashboard data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
-    };
+    }
     
-    fetchDashboardData();
+    loadData();
   }, []);
 
   if (isLoading) {

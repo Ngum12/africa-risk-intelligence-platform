@@ -19,7 +19,7 @@ export default function MediaSignals() {
 
     try {
       // Use the apiClient to make the request
-      const response = await apiClient.get('http://localhost:8080/media-signals', {
+      const response = await apiClient.get('/media-signals', {
         params: { country, actor }
       });
       

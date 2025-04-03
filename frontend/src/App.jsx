@@ -13,6 +13,7 @@ import MediaIntelligenceDashboard from './pages/MediaIntelligenceDashboard';
 import AuthPage from './pages/AuthPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import './App.css';
+import { API_URL } from './services/config';
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -28,7 +29,7 @@ export default function App() {
     const testBackendConnection = async () => {
       try {
         // Try to access a simpler endpoint, or create one if needed
-        const response = await fetch('http://localhost:8080/api/status', {
+        const response = await fetch(`${API_URL}/api/status`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
