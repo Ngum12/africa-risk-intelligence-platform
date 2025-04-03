@@ -252,23 +252,10 @@ Our conflict prediction model has been rigorously validated against historical d
 - **International NGOs**: Coordinate aid efforts with precise risk assessments
 - **Research Institutions**: Access comprehensive conflict data for academic study
 - **Media Organizations**: Support reporting with verified risk information
-
----
-
-## 🛡️ Security & Compliance
-
-- **End-to-End Encryption**: All data in transit and at rest is encrypted
-- **Role-Based Access Control**: Granular permissions for different user types
-- **Audit Logging**: Comprehensive tracking of all system interactions
-- **Data Sovereignty**: Options for country-specific data storage
-- **Compliance Ready**: Designed to meet international security standards
-- **Ethical AI**: Transparent model operation with bias mitigation measures
-
 ---
 
 ## 📱 Mobile Capabilities
 
-![Mobile Interface](https://i.imgur.com/KcG4wqz.png)
 
 - **Progressive Web App**: Access from any device with browser support
 - **Offline Capabilities**: Core features available without network connection
@@ -301,7 +288,6 @@ Our conflict prediction model has been rigorously validated against historical d
 ### Infrastructure
 - Docker & Docker Compose
 - Kubernetes (optional)
-- IBM Cloud Code Engine
 - GitHub Actions (CI/CD)
 - Locust (load testing)
 
