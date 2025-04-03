@@ -1,6 +1,6 @@
 # 🌍 AFRICA RISK INTELLIGENCE PLATFORM (ARIP)
 
-![Africa Risk Intelligence Platform](https://i.imgur.com/8YtQZW1.png)
+![Image](https://github.com/user-attachments/assets/fb2d53fd-f491-4951-8111-7f9740996f46)
 
 ## 🚀 Transforming Continental Risk Assessment Through AI-Powered Intelligence
 
@@ -34,7 +34,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🧠 Advanced Predictive Analytics
 
-![Predictive Analytics](https://i.imgur.com/ZwpPjLy.png)
+![Image](https://github.com/user-attachments/assets/305c5e07-7ebf-408a-bac7-2138e496e340)
 
 - **Random Forest Prediction Engine**: Our core ML system analyzes 50+ risk factors to generate accurate conflict forecasts
 - **Dynamic Risk Scoring**: Continuous calculation of threat levels across multiple dimensions (political, economic, ethnic, environmental)
@@ -43,7 +43,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🌐 Comprehensive Intelligence Dashboard
 
-![Intelligence Dashboard](https://i.imgur.com/JgF4CVW.png)
+![Image](https://github.com/user-attachments/assets/e310e7bc-4171-44ae-915b-ae7ec022a9d7)
 
 - **Interactive Crisis Map**: High-definition visualization with temporal analysis and historical context
 - **Risk Factor Breakdown**: Detailed insights into the specific drivers of conflict in each region
@@ -52,7 +52,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 📰 Media Intelligence Center
 
-![Media Intelligence](https://i.imgur.com/3X8DoYs.png)
+![Image](https://github.com/user-attachments/assets/ff89fec7-4521-4ded-93f7-3dc59cfebcfa)
 
 - **Sentiment Analysis**: Advanced NLP processing of news articles, social media, and local reports
 - **Disinformation Detection**: Identifying coordinated information campaigns that may trigger conflict
