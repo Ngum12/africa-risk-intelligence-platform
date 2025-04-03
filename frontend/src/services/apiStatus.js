@@ -1,4 +1,4 @@
-// Separate file for API status checks to avoid circular imports
+// This file is imported in Dashboard.jsx but might be missing
 
 const API_URL = "https://africa-risk-api.onrender.com";
 

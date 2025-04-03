@@ -12,6 +12,8 @@ import DataAnalysis from './pages/DataAnalysis';
 import MediaIntelligenceDashboard from './pages/MediaIntelligenceDashboard';
 import AuthPage from './pages/AuthPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import NotFound from './pages/NotFound';
+import Layout from './components/Layout';
 import './App.css';
 import { API_URL } from './services/config';
 
@@ -140,6 +142,7 @@ export default function App() {
               <Route path="/media-signals" element={isAuthenticated ? <MediaSignals /> : <AuthPage />} />
               <Route path="/retrain" element={isAuthenticated ? <Retraining /> : <AuthPage />} />
               <Route path="/media-intelligence/:hotspotId?" element={isAuthenticated ? <MediaIntelligenceDashboard /> : <AuthPage />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
 

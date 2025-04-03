@@ -62,7 +62,15 @@ export async function fetchDashboardData() {
     return data;
   } catch (error) {
     console.error("Dashboard fetch error:", error);
-    throw error;
+    // Return a valid empty structure instead of throwing
+    return { 
+      data: {
+        risk_by_country: {},
+        event_types: {},
+        trend_data: { months: [], incidents: [], fatalities: [] },
+        model_metrics: {}
+      }
+    };
   }
 }
 
@@ -80,7 +88,15 @@ export async function fetchModelInfo() {
     return data;
   } catch (error) {
     console.error("Model info fetch error:", error);
-    throw error;
+    // Return a valid empty structure instead of throwing
+    return { 
+      model_info: {
+        type: "Unknown",
+        last_updated: "N/A",
+        size_mb: 0,
+        n_estimators: 0
+      }
+    };
   }
 }
 

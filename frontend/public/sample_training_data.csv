@@ -1,0 +1,11 @@
+COUNTRY,ADMIN1,EVENT_TYPE,ACTOR1,LATITUDE,LONGITUDE,YEAR,FATALITIES,TARGET
+Nigeria,Borno,Violence against civilians,Boko Haram,11.8496,13.1606,2023,12,1
+Somalia,Mogadishu,Explosion/Remote violence,Al-Shabaab,2.0469,45.3182,2023,5,1
+Ethiopia,Tigray,Battle,Government forces,14.1421,38.7729,2023,3,1
+DRC,North Kivu,Battle,M23,-0.7924,29.4496,2023,7,1
+Kenya,Nairobi,Protests,Civilians,-1.2864,36.8172,2023,0,0
+Ghana,Accra,Strategic development,Government forces,5.6037,-0.1870,2023,0,0
+Tanzania,Dar es Salaam,Protests,Civilians,-6.7924,39.2083,2023,0,0
+South Africa,Gauteng,Protests,Civilians,-26.2708,28.1123,2023,1,0
+Uganda,Kampala,Violence against civilians,Unknown,0.3476,32.5825,2023,2,1
+Rwanda,Kigali,Strategic development,Government forces,-1.9536,30.0603,2023,0,0

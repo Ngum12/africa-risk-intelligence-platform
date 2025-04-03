@@ -104,20 +104,40 @@ def get_media_signals(country: str, actor: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Media analysis failed: {e}")
 
-@app.post("/upload-csv")
-def upload_csv(file: UploadFile = File(...)):
+@app.post("/upload-csv", response_model=dict)
+async def upload_csv(file: UploadFile = File(...)):
+    """Upload a CSV file for model retraining"""
     try:
-        # Save the uploaded CSV
+        logger.info(f"Received CSV upload: {file.filename}")
+        
+        # Validate file extension
+        if not file.filename.endswith('.csv'):
+            logger.error("Invalid file format - must be CSV")
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": "File must be a CSV file"}
+            )
+        
+        # Save the uploaded CSV with timestamp to avoid overwriting
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         os.makedirs("uploads", exist_ok=True)
-        file_path = f"uploads/{file.filename}"
+        file_path = f"uploads/{timestamp}_{file.filename}"
+        
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-
-        # Trigger retraining
-        result = retrain_model_from_csv(file_path)
-        return result
+        
+        logger.info(f"CSV saved to {file_path}, initiating retraining")
+        
+        # Start retraining process
+        result = await train_model_task(file_path)
+        
+        return {"success": True, "message": "Retraining initiated", "details": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Retraining failed: {e}")
+        logger.exception(f"Error in CSV upload: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Retraining failed: {str(e)}"}
+        )
 
 # Add this endpoint to return valid values from your dataset
 
@@ -281,6 +301,73 @@ async def train_model_task(csv_path=None):
         # ... existing code ...
         record_retraining_attempt(False, None, str(e), None)
 
+async def train_model_task(csv_path):
+    """Run model retraining process"""
+    try:
+        logger.info(f"Starting model retraining with data from {csv_path}")
+        
+        # Ensure the file exists
+        if not os.path.exists(csv_path):
+            error_msg = f"Training data file not found: {csv_path}"
+            logger.error(error_msg)
+            record_retraining_attempt(False, None, error_msg, None)
+            return {"success": False, "error": error_msg}
+        
+        # Create necessary directories
+        model_dir = os.path.join(os.path.dirname(__file__), 'models')
+        os.makedirs(model_dir, exist_ok=True)
+        logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Call your retraining function with timeouts
+        result = retrain_model_from_csv(csv_path)
+        
+        if isinstance(result, tuple) and len(result) == 2:
+            # Handle the case where function returns (success, data)
+            success, data = result
+        else:
+            # Handle the case where function returns just data
+            success = not isinstance(result, Exception)
+            data = result
+        
+        # Record the attempt
+        if success:
+            model_path = os.path.join(model_dir, 'conflict_model_final.pkl')
+            logger.info(f"Model retraining successful, saved to {model_path}")
+            
+            # Create metadata file
+            metadata = {
+                "created": datetime.now().isoformat(),
+                "training_file": os.path.basename(csv_path),
+                "metrics": data.get("metrics", {}),
+                "num_samples": data.get("num_samples", 0),
+                "features": data.get("features", [])
+            }
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            metadata_path = os.path.join(model_dir, f"metadata_{timestamp}.json")
+            with open(metadata_path, "w") as f:
+                json.dump(metadata, f, indent=2)
+                
+            # Update latest.json pointer
+            latest = {"model_path": model_path, "metadata_path": metadata_path}
+            with open(os.path.join(model_dir, "latest.json"), "w") as f:
+                json.dump(latest, f, indent=2)
+                
+            record_retraining_attempt(True, model_path, None, metadata)
+            return {"success": True, "message": "Model retraining successful", "details": data}
+        else:
+            error_msg = str(data) if data else "Unknown error during retraining"
+            logger.error(f"Model retraining failed: {error_msg}")
+            record_retraining_attempt(False, None, error_msg, None)
+            return {"success": False, "error": error_msg}
+            
+    except Exception as e:
+        error_msg = f"Exception during model retraining: {str(e)}"
+        logger.exception(error_msg)
+        record_retraining_attempt(False, None, error_msg, None)
+        return {"success": False, "error": error_msg}
+
 # Add this endpoint
 
 @app.get("/model/training-log-file")
@@ -407,52 +494,127 @@ def get_countries():
 
 @app.get("/regions")
 def get_regions(country: str):
-    """Return regions for a specific country"""
-    regions_map = {
-        "Nigeria": [
-            {"name": "Borno", "code": "BO"},
-            {"name": "Lagos", "code": "LA"},
-            {"name": "Abuja", "code": "AB"},
-            {"name": "Kano", "code": "KA"},
-            {"name": "Kaduna", "code": "KD"}
+    """Return regions/admin1 areas for a given country"""
+    regions_by_country = {
+        "nigeria": [
+            "Borno", "Yobe", "Adamawa", "Katsina", "Sokoto", "Benue", "Lagos", 
+            "Abuja", "Kano", "Kaduna", "Plateau", "Niger", "Zamfara"
         ],
-        "Somalia": [
-            {"name": "Mogadishu", "code": "MG"},
-            {"name": "Kismayo", "code": "KS"},
-            {"name": "Baidoa", "code": "BA"},
-            {"name": "Galkayo", "code": "GA"}
+        "somalia": [
+            "Banadir", "Gedo", "Lower Juba", "Middle Juba", "Lower Shabelle", 
+            "Middle Shabelle", "Hiraan", "Galgaduud", "Mudug", "Nugal", "Bari"
         ],
-        # Add more countries and regions as needed
-    }
-    return {"regions": regions_map.get(country, [])}
-
-@app.get("/actors")
-def get_actors(country: str = None):
-    """Return actors for a specific country or all actors if no country specified"""
-    all_actors = {
-        "Nigeria": [
-            {"id": 1, "name": "Boko Haram"},
-            {"id": 2, "name": "Islamic State West Africa"},
-            {"id": 3, "name": "Fulani Ethnic Militia"},
-            {"id": 4, "name": "Nigerian Military"}
+        "ethiopia": [
+            "Tigray", "Amhara", "Oromia", "Somali", "Afar", "Addis Ababa", 
+            "Gambela", "Benishangul-Gumuz", "SNNPR"
         ],
-        "Somalia": [
-            {"id": 5, "name": "Al-Shabaab"},
-            {"id": 6, "name": "Somali Military"},
-            {"id": 7, "name": "AMISOM"}
+        "drc": [
+            "North Kivu", "South Kivu", "Ituri", "Tanganyika", "Kasai", 
+            "Kasai Central", "Kinshasa", "Maniema", "Katanga"
         ],
-        "Ethiopia": [
-            {"id": 8, "name": "TPLF"},
-            {"id": 9, "name": "Ethiopian Military"},
-            {"id": 10, "name": "OLA"}
+        "south sudan": [
+            "Central Equatoria", "Eastern Equatoria", "Western Equatoria", "Jonglei", 
+            "Lakes", "Northern Bahr el Ghazal", "Unity", "Upper Nile", "Warrap"
+        ],
+        "sudan": [
+            "Darfur", "Khartoum", "Blue Nile", "South Kordofan", "North Kordofan", 
+            "Red Sea", "Kassala", "Gedaref", "Sennar"
         ]
     }
     
+    # Default case for any country
+    default_regions = ["Capital Region", "North", "South", "East", "West", "Central"]
+    
+    # Find regions for the country (case-insensitive search)
+    country_lower = country.lower()
+    regions = regions_by_country.get(country_lower, default_regions)
+    
+    return {"regions": [{"name": region} for region in regions]}
+
+@app.get("/actors")
+def get_actors(country: str = None):
+    """Return conflict actors by country"""
+    all_actors = [
+        {"name": "Boko Haram", "type": "Non-state armed group", "countries": ["Nigeria", "Cameroon", "Chad"]},
+        {"name": "Al-Shabaab", "type": "Non-state armed group", "countries": ["Somalia", "Kenya"]},
+        {"name": "TPLF", "type": "Political militia", "countries": ["Ethiopia"]},
+        {"name": "OLA", "type": "Political militia", "countries": ["Ethiopia"]},
+        {"name": "Janjaweed/RSF", "type": "Political militia", "countries": ["Sudan"]},
+        {"name": "M23", "type": "Rebel group", "countries": ["DRC"]},
+        {"name": "ADF", "type": "Non-state armed group", "countries": ["DRC", "Uganda"]},
+        {"name": "Government forces", "type": "State forces", "countries": ["All"]},
+        {"name": "JNIM", "type": "Non-state armed group", "countries": ["Mali", "Burkina Faso", "Niger"]},
+        {"name": "Wagner Group", "type": "Private military", "countries": ["Mali", "CAR", "Sudan"]},
+        {"name": "Protesters", "type": "Civilians", "countries": ["All"]},
+        {"name": "Civilians", "type": "Civilians", "countries": ["All"]},
+        {"name": "Unknown armed group", "type": "Unidentified", "countries": ["All"]}
+    ]
+    
+    # If country is specified, filter the actors
     if country:
-        return {"actors": all_actors.get(country, [])}
+        actors = [
+            actor for actor in all_actors 
+            if country in actor["countries"] or "All" in actor["countries"]
+        ]
     else:
-        # Flatten all actors if no country specified
-        all_actors_list = []
-        for actors in all_actors.values():
-            all_actors_list.extend(actors)
-        return {"actors": all_actors_list}
+        actors = all_actors
+    
+    return {"actors": actors}
+
+@app.on_event("startup")
+async def startup_event():
+    all_routes = [{"path": route.path, "name": route.name, "methods": route.methods} for route in app.routes]
+    print(f"Registered routes: {all_routes}")
+    logger.info(f"Registered routes: {all_routes}")
+
+@app.get("/model/retraining-status")
+async def get_retraining_status():
+    """Get status of the model retraining process"""
+    try:
+        # Check for model and metadata
+        model_dir = os.path.join(os.path.dirname(__file__), 'models')
+        model_path = os.path.join(model_dir, 'conflict_model_final.pkl')
+        latest_path = os.path.join(model_dir, 'latest.json')
+        
+        if not os.path.exists(model_path):
+            return {
+                "status": "no_model", 
+                "message": "No trained model found",
+                "last_attempts": retraining_history[-3:] if retraining_history else []
+            }
+            
+        # Get model file stats
+        model_stats = os.stat(model_path)
+        model_size_mb = round(model_stats.st_size / (1024 * 1024), 2)
+        model_modified = datetime.fromtimestamp(model_stats.st_mtime).isoformat()
+        
+        # Get metadata if available
+        metadata = {}
+        if os.path.exists(latest_path):
+            try:
+                with open(latest_path, 'r') as f:
+                    latest = json.load(f)
+                    
+                metadata_path = latest.get('metadata_path')
+                if metadata_path and os.path.exists(metadata_path):
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError) as e:
+                logger.error(f"Error reading metadata: {str(e)}")
+        
+        # Return status
+        return {
+            "status": "ready",
+            "message": "Model is trained and ready",
+            "model_size_mb": model_size_mb,
+            "last_modified": model_modified,
+            "metadata": metadata,
+            "last_attempts": retraining_history[-3:] if retraining_history else []
+        }
+    except Exception as e:
+        logger.exception(f"Error getting retraining status: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Error checking model status: {str(e)}",
+            "last_attempts": retraining_history[-3:] if retraining_history else []
+        }
