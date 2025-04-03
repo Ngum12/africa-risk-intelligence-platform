@@ -17,7 +17,7 @@ app = FastAPI(title="Africa Conflict Risk API", description="Predict conflict ri
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
+    allow_origins=["https://mellifluous-biscotti-7d3f89.netlify.app", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]

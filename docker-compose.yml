@@ -2,26 +2,32 @@ version: '3.8'
 
 services:
   frontend:
-    build: 
+    build:
       context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
     ports:
-      - "3000:80"
+      - "3000:80"  # Map container's port 80 to host's port 3000
+    environment:
+      - VITE_API_URL=http://localhost:8081  # Match backend port
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:8080
 
   backend:
-    build: 
+    build:
       context: ./backend
+      dockerfile: Dockerfile
+    restart: always
     ports:
-      - "8080:8080"
-    volumes:
-      - ./backend:/app
-      - backend_data:/app/data
+      - "8081:8080"  # Map container's port 8080 to host's port 8081
     environment:
-      - DEBUG=True
-      - ALLOW_ORIGIN=http://localhost:3000
+      - DEBUG=False
+      - ALLOW_ORIGIN=http://localhost:3000  # Match frontend port
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   backend_data:

@@ -55,8 +55,7 @@ class MediaIntelligenceService:
             
         # Create a cache key based on parameters
         cache_key = f"{location}_{'-'.join(keywords)}_{days_back}"
-        cache_file = os.path.join(self.cache_dir, f"{re.sub(r'[^\w]', '_', cache_key)}.json")
-        
+        cache_file = os.path.join(self.cache_dir, re.sub(r'[^\w]', '_', cache_key) + ".json")        
         # Check if we have cached data that's less than 6 hours old
         if os.path.exists(cache_file):
             file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(cache_file))
