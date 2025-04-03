@@ -12,16 +12,27 @@ import logging
 from media_intelligence import get_media_intelligence
 import json
 from datetime import datetime
+import gc  # Add garbage collection
 
 app = FastAPI(title="Africa Conflict Risk API", description="Predict conflict risk and retrain with new data")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://visionary-elf-d34048.netlify.app", "http://localhost:5173"],
+    allow_origins=[
+        "https://visionary-elf-d34048.netlify.app", 
+        "https://sparkly-choux-2933f0.netlify.app",  # Add your new domain
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+@app.middleware("http")
+async def add_gc_middleware(request, call_next):
+    response = await call_next(request)
+    gc.collect()  # Force garbage collection after each request
+    return response
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -127,57 +138,43 @@ def get_categories():
 @app.get("/dashboard-data")
 def get_dashboard_data():
     """Return dashboard data"""
-    return {
-        "data": {
-            "risk_by_country": {
-                "Nigeria": {"high": 65, "low": 35},
-                "Somalia": {"high": 78, "low": 22},
-                "South Sudan": {"high": 82, "low": 18},
-                "DRC": {"high": 70, "low": 30},
-                "Ethiopia": {"high": 55, "low": 45}
-            },
-            "event_types": {
-                "Protests": 120,
-                "Violence against civilians": 85,
-                "Armed clashes": 65,
-                "Remote explosives": 40,
-                "Strategic developments": 25
-            },
-            "actor_data": {
-                "State forces": 95,
-                "Rebel groups": 75,
-                "Political militias": 60,
-                "Identity militias": 45,
-                "Civilians": 40
-            },
-            "feature_importances": {
-                "Location": 0.25,
-                "Actor type": 0.20,
-                "Event history": 0.18,
-                "Population density": 0.15,
-                "Economic indicators": 0.12,
-                "Seasonal factors": 0.10
-            },
-            "trend_data": {
-                "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                "incidents": [45, 52, 49, 60, 55, 70],
-                "fatalities": [23, 27, 30, 35, 25, 45]
-            },
-            "hotspots": [
-                {"lat": 9.0820, "lng": 8.6753, "intensity": 0.8, "location": "Nigeria"},
-                {"lat": 5.1521, "lng": 46.1996, "intensity": 0.9, "location": "Somalia"},
-                {"lat": 7.8699, "lng": 29.6667, "intensity": 0.85, "location": "South Sudan"},
-                {"lat": -0.2280, "lng": 15.8277, "intensity": 0.75, "location": "DRC"},
-                {"lat": 9.1450, "lng": 40.4897, "intensity": 0.7, "location": "Ethiopia"}
-            ],
-            "model_metrics": {
-                "accuracy": 0.87,
-                "precision": 0.83,
-                "recall": 0.85,
-                "f1": 0.84
+    try:
+        # Make response smaller and simpler
+        return {
+            "data": {
+                "risk_by_country": {
+                    "Nigeria": {"high": 65, "low": 35},
+                    "Somalia": {"high": 78, "low": 22},
+                    "South Sudan": {"high": 82, "low": 18},
+                    "DRC": {"high": 70, "low": 30},
+                    "Ethiopia": {"high": 55, "low": 45}
+                },
+                "event_types": {
+                    "Protests": 120,
+                    "Violence against civilians": 85,
+                    "Armed clashes": 65,
+                    "Remote explosives": 40,
+                    "Strategic developments": 25
+                },
+                "trend_data": {
+                    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                    "incidents": [45, 52, 49, 60, 55, 70],
+                    "fatalities": [23, 27, 30, 35, 25, 45]
+                },
+                "model_metrics": {
+                    "accuracy": 0.87,
+                    "precision": 0.83,
+                    "recall": 0.85,
+                    "f1": 0.84
+                }
             }
         }
-    }
+    except Exception as e:
+        logger.error(f"Error serving dashboard data: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error", "detail": str(e)}
+        )
 
 @app.get("/model-info")
 def get_model_info():
@@ -391,3 +388,71 @@ async def api_status():
         "message": "API is running properly",
         "timestamp": datetime.now().isoformat()
     }
+
+@app.get("/countries")
+def get_countries():
+    """Return African countries for the form"""
+    return {
+        "countries": [
+            {"name": "Nigeria", "code": "NG"},
+            {"name": "Somalia", "code": "SO"},
+            {"name": "Ethiopia", "code": "ET"},
+            {"name": "Sudan", "code": "SD"},
+            {"name": "South Sudan", "code": "SS"},
+            {"name": "Mali", "code": "ML"},
+            {"name": "Democratic Republic of Congo", "code": "CD"},
+            # Add more countries as needed
+        ]
+    }
+
+@app.get("/regions")
+def get_regions(country: str):
+    """Return regions for a specific country"""
+    regions_map = {
+        "Nigeria": [
+            {"name": "Borno", "code": "BO"},
+            {"name": "Lagos", "code": "LA"},
+            {"name": "Abuja", "code": "AB"},
+            {"name": "Kano", "code": "KA"},
+            {"name": "Kaduna", "code": "KD"}
+        ],
+        "Somalia": [
+            {"name": "Mogadishu", "code": "MG"},
+            {"name": "Kismayo", "code": "KS"},
+            {"name": "Baidoa", "code": "BA"},
+            {"name": "Galkayo", "code": "GA"}
+        ],
+        # Add more countries and regions as needed
+    }
+    return {"regions": regions_map.get(country, [])}
+
+@app.get("/actors")
+def get_actors(country: str = None):
+    """Return actors for a specific country or all actors if no country specified"""
+    all_actors = {
+        "Nigeria": [
+            {"id": 1, "name": "Boko Haram"},
+            {"id": 2, "name": "Islamic State West Africa"},
+            {"id": 3, "name": "Fulani Ethnic Militia"},
+            {"id": 4, "name": "Nigerian Military"}
+        ],
+        "Somalia": [
+            {"id": 5, "name": "Al-Shabaab"},
+            {"id": 6, "name": "Somali Military"},
+            {"id": 7, "name": "AMISOM"}
+        ],
+        "Ethiopia": [
+            {"id": 8, "name": "TPLF"},
+            {"id": 9, "name": "Ethiopian Military"},
+            {"id": 10, "name": "OLA"}
+        ]
+    }
+    
+    if country:
+        return {"actors": all_actors.get(country, [])}
+    else:
+        # Flatten all actors if no country specified
+        all_actors_list = []
+        for actors in all_actors.values():
+            all_actors_list.extend(actors)
+        return {"actors": all_actors_list}

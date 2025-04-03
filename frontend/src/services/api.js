@@ -22,20 +22,24 @@ apiClient.interceptors.response.use(
 );
 
 // Add retry logic for slow cold starts on Render's free tier
-async function fetchWithRetry(url, options = {}, maxRetries = 2) {
+async function fetchWithRetry(url, options = {}, maxRetries = 3) {
   let lastError;
+  // Increase delay between retries for cold starts
+  const delays = [3000, 8000, 15000]; 
+  
   for (let i = 0; i <= maxRetries; i++) {
     try {
       console.log(`Fetching ${url} (attempt ${i+1}/${maxRetries+1})`);
-      const response = await fetch(url, options);
-      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-      return await response.json();
+      
+      // Use axios instead of fetch for better error handling
+      const response = await apiClient.get(url, options);
+      return response.data;
     } catch (error) {
       console.error(`Attempt ${i+1} failed:`, error);
       lastError = error;
+      
       if (i < maxRetries) {
-        // Wait longer between retries (3s, then 6s)
-        const delay = (i + 1) * 3000;
+        const delay = delays[i] || 15000;
         console.log(`Waiting ${delay}ms before retry...`);
         await new Promise(r => setTimeout(r, delay));
       }

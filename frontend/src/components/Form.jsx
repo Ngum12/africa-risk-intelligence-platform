@@ -3,13 +3,13 @@ import { API_URL } from '../services/config';
 
 export default function Form({ onResult }) {
   const [formData, setFormData] = useState({
-    country: '',
+    country: 'Nigeria', // Default country
     admin1: '',
-    event_type: '',
-    actor1: '',
-    latitude: '',
-    longitude: '',
-    year: new Date().getFullYear() // Default to current year
+    event_type: 'Violence against civilians',
+    actor1: 'Boko Haram',
+    latitude: 10.3833, // Default coordinates for Nigeria
+    longitude: 9.75,
+    year: new Date().getFullYear() // Current year
   });
 
   const [countryOptions, setCountryOptions] = useState([]);
@@ -21,64 +21,82 @@ export default function Form({ onResult }) {
 
   // Fetch categories from backend
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchFormData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_URL}/categories`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch categories: ${response.status}`);
-        }
-        const data = await response.json();
         
-        // Set the options
-        setCountryOptions(data.countries || []);
-        setEventTypeOptions(data.event_types || []);
-        setActorOptions(data.actors || []);
+        // Fetch each category type separately
+        console.log("Attempting to fetch countries from:", `${API_URL}/countries`);
+        console.log("Attempting to fetch categories from:", `${API_URL}/categories`);
+        console.log("Attempting to fetch actors from:", `${API_URL}/actors`);
+        const [countriesRes, categoriesRes, actorsRes] = await Promise.all([
+          fetch(`${API_URL}/countries`),
+          fetch(`${API_URL}/categories`),
+          fetch(`${API_URL}/actors`)
+        ]);
+        
+        if (!countriesRes.ok || !categoriesRes.ok || !actorsRes.ok) {
+          throw new Error('Failed to fetch form data');
+        }
+        
+        const countriesData = await countriesRes.json();
+        const categoriesData = await categoriesRes.json();
+        const actorsData = await actorsRes.json();
+        
+        // Set the options with proper data structure
+        setCountryOptions(countriesData.countries.map(c => c.name) || []);
+        setEventTypeOptions(categoriesData.categories.map(c => c.name) || []);
+        setActorOptions(actorsData.actors.map(a => a.name) || []);
         setIsLoading(false);
       } catch (err) {
-        console.error("Error fetching categories:", err);
-        setError(err.message);
-        setIsLoading(false);
+        console.error("Error fetching form data:", err);
         
-        // Fallback options if API fails
-        setCountryOptions(["Somalia", "Nigeria", "Sudan", "Ethiopia"]);
-        setEventTypeOptions(["Violence against civilians", "Battle", "Protest", "Riot"]);
-        setActorOptions(["Boko Haram", "Al-Shabaab", "Government forces", "Civilians"]);
+        // Fallback data when API fails
+        setCountryOptions(["Nigeria", "Somalia", "Ethiopia", "Sudan", "South Sudan"]);
+        setEventTypeOptions(["Violence against civilians", "Armed clashes", "Protests", "Remote explosives", "Strategic developments"]);
+        setActorOptions(["Boko Haram", "Al-Shabaab", "Government forces", "Islamic State", "Local militias"]);
+        setIsLoading(false);
       }
     };
     
-    fetchCategories();
+    fetchFormData();
   }, []);
 
   // Update regions based on selected country
   useEffect(() => {
     const fetchRegions = async () => {
-      if (!formData.country) return;
+      if (!formData.country) {
+        setRegionOptions([]);
+        return;
+      }
       
       try {
-        const response = await fetch(`${API_URL}/categories`);
+        console.log("Attempting to fetch regions from:", `${API_URL}/regions?country=${encodeURIComponent(formData.country)}`);
+        const response = await fetch(`${API_URL}/regions?country=${encodeURIComponent(formData.country)}`);
+        
         if (!response.ok) {
           throw new Error(`Failed to fetch regions: ${response.status}`);
         }
         
         const data = await response.json();
-        if (data.regions && data.regions[formData.country]) {
-          setRegionOptions(data.regions[formData.country]);
+        
+        // Check if we have regions and handle the data structure
+        if (data.regions && Array.isArray(data.regions)) {
+          setRegionOptions(data.regions.map(r => r.name));
         } else {
           setRegionOptions([]);
         }
       } catch (err) {
         console.error("Error fetching regions:", err);
         
-        // Fallback regions mapping
-        const regionMap = {
-          "Nigeria": ["Borno", "Lagos", "Abuja", "Kano", "Kaduna"],
-          "Somalia": ["Mogadishu", "Kismayo", "Baidoa", "Galkayo"],
-          "Sudan": ["Khartoum", "Darfur", "Blue Nile", "South Kordofan"],
-          "Ethiopia": ["Addis Ababa", "Tigray", "Amhara", "Oromia"],
+        // Fallback regions based on country
+        const fallbackRegions = {
+          "Nigeria": ["Borno", "Lagos", "Kaduna", "Abuja", "Kano"],
+          "Somalia": ["Mogadishu", "Kismayo", "Baidoa", "Garowe", "Hargeisa"],
+          "Ethiopia": ["Tigray", "Amhara", "Oromia", "Addis Ababa", "Afar"]
         };
         
-        setRegionOptions(regionMap[formData.country] || []);
+        setRegionOptions(fallbackRegions[formData.country] || []);
       }
     };
     
@@ -95,7 +113,21 @@ export default function Form({ onResult }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Add validation
+    if (!formData.country || !formData.admin1 || !formData.event_type || 
+        !formData.actor1 || !formData.latitude || !formData.longitude || !formData.year) {
+      alert("Please fill out all fields");
+      return;
+    }
+    
     try {
+      // Show loading state
+      setIsLoading(true);
+      
+      console.log("Submitting prediction with data:", formData);
+      console.log("API URL:", `${API_URL}/predict`);
+      
       const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         headers: {
@@ -105,15 +137,19 @@ export default function Form({ onResult }) {
       });
       
       const data = await response.json();
+      console.log("Prediction response:", data);
       
       if (!response.ok) {
-        throw new Error(data.detail || 'Something went wrong');
+        throw new Error(data.detail || 'Prediction failed');
       }
       
+      // Process results
       onResult(data);
     } catch (err) {
       console.error("Prediction error:", err);
       alert(`Prediction failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -234,8 +270,12 @@ export default function Form({ onResult }) {
         />
       </div>
 
-      <button type="submit" className="w-full py-2 mt-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded">
-        Predict Risk
+      <button 
+        type="submit" 
+        className="w-full py-2 mt-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded"
+        disabled={isLoading}
+      >
+        {isLoading ? 'Processing...' : 'Predict Risk'}
       </button>
     </form>
   );
