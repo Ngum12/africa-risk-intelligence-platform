@@ -52,7 +52,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 📰 Media Intelligence Center
 
-![Media Intelligence](https://i.imgur.com/3X8DoYs.png)
+![Image](https://github.com/user-attachments/assets/ff89fec7-4521-4ded-93f7-3dc59cfebcfa)
 
 - **Sentiment Analysis**: Advanced NLP processing of news articles, social media, and local reports
 - **Disinformation Detection**: Identifying coordinated information campaigns that may trigger conflict
