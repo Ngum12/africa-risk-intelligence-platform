@@ -34,7 +34,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🧠 Advanced Predictive Analytics
 
-![Predictive Analytics](https://i.imgur.com/ZwpPjLy.png)
+![Image](https://github.com/user-attachments/assets/305c5e07-7ebf-408a-bac7-2138e496e340)
 
 - **Random Forest Prediction Engine**: Our core ML system analyzes 50+ risk factors to generate accurate conflict forecasts
 - **Dynamic Risk Scoring**: Continuous calculation of threat levels across multiple dimensions (political, economic, ethnic, environmental)
