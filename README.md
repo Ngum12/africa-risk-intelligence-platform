@@ -1,6 +1,6 @@
 # 🌍 AFRICA RISK INTELLIGENCE PLATFORM (ARIP)
 
-![Africa Risk Intelligence Platform](https://i.imgur.com/8YtQZW1.png)
+![Image](https://github.com/user-attachments/assets/fb2d53fd-f491-4951-8111-7f9740996f46)
 
 ## 🚀 Transforming Continental Risk Assessment Through AI-Powered Intelligence
 
@@ -34,7 +34,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🧠 Advanced Predictive Analytics
 
-![Predictive Analytics](https://i.imgur.com/ZwpPjLy.png)
+![Image](https://github.com/user-attachments/assets/305c5e07-7ebf-408a-bac7-2138e496e340)
 
 - **Random Forest Prediction Engine**: Our core ML system analyzes 50+ risk factors to generate accurate conflict forecasts
 - **Dynamic Risk Scoring**: Continuous calculation of threat levels across multiple dimensions (political, economic, ethnic, environmental)
@@ -43,7 +43,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🌐 Comprehensive Intelligence Dashboard
 
-![Intelligence Dashboard](https://i.imgur.com/JgF4CVW.png)
+![Image](https://github.com/user-attachments/assets/e310e7bc-4171-44ae-915b-ae7ec022a9d7)
 
 - **Interactive Crisis Map**: High-definition visualization with temporal analysis and historical context
 - **Risk Factor Breakdown**: Detailed insights into the specific drivers of conflict in each region
@@ -52,7 +52,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 📰 Media Intelligence Center
 
-![Media Intelligence](https://i.imgur.com/3X8DoYs.png)
+![Image](https://github.com/user-attachments/assets/ff89fec7-4521-4ded-93f7-3dc59cfebcfa)
 
 - **Sentiment Analysis**: Advanced NLP processing of news articles, social media, and local reports
 - **Disinformation Detection**: Identifying coordinated information campaigns that may trigger conflict
@@ -61,7 +61,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🛠️ Model Training & Optimization
 
-![Model Optimization](https://i.imgur.com/5qnYQz1.png)
+![Image](https://github.com/user-attachments/assets/852e7be5-1a0f-49b6-a2ea-0ed59c63035f)
 
 - **Custom Dataset Upload**: Enhance model accuracy with organization-specific data
 - **Performance Metrics Dashboard**: Track model improvement across accuracy, precision, recall, and F1 score
@@ -252,23 +252,10 @@ Our conflict prediction model has been rigorously validated against historical d
 - **International NGOs**: Coordinate aid efforts with precise risk assessments
 - **Research Institutions**: Access comprehensive conflict data for academic study
 - **Media Organizations**: Support reporting with verified risk information
-
----
-
-## 🛡️ Security & Compliance
-
-- **End-to-End Encryption**: All data in transit and at rest is encrypted
-- **Role-Based Access Control**: Granular permissions for different user types
-- **Audit Logging**: Comprehensive tracking of all system interactions
-- **Data Sovereignty**: Options for country-specific data storage
-- **Compliance Ready**: Designed to meet international security standards
-- **Ethical AI**: Transparent model operation with bias mitigation measures
-
 ---
 
 ## 📱 Mobile Capabilities
 
-![Mobile Interface](https://i.imgur.com/KcG4wqz.png)
 
 - **Progressive Web App**: Access from any device with browser support
 - **Offline Capabilities**: Core features available without network connection
@@ -301,7 +288,6 @@ Our conflict prediction model has been rigorously validated against historical d
 ### Infrastructure
 - Docker & Docker Compose
 - Kubernetes (optional)
-- IBM Cloud Code Engine
 - GitHub Actions (CI/CD)
 - Locust (load testing)
 
