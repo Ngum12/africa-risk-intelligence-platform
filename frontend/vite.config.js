@@ -44,10 +44,18 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'map-vendor': ['leaflet', 'maplibre-gl', 'react-leaflet'],
-          'globe-vendor': ['react-globe.gl', 'three']
-        }
+          'globe-vendor': ['react-globe.gl', 'three'],
+        },
+        // Use .js extension instead of .mjs
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        format: 'iife', // Use immediately invoked function expression format
       }
-    }
+    },
+    // Use legacy format that works better with Netlify
+    target: 'es2015',
+    outDir: 'dist',
   },
   optimizeDeps: {
     // Pre-bundle these dependencies
