@@ -43,7 +43,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🌐 Comprehensive Intelligence Dashboard
 
-![Intelligence Dashboard](https://i.imgur.com/JgF4CVW.png)
+![Image](https://github.com/user-attachments/assets/e310e7bc-4171-44ae-915b-ae7ec022a9d7)
 
 - **Interactive Crisis Map**: High-definition visualization with temporal analysis and historical context
 - **Risk Factor Breakdown**: Detailed insights into the specific drivers of conflict in each region
