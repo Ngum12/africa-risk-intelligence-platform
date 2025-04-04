@@ -100,7 +100,7 @@ graph TD
 
 - **🌐 Frontend Dashboard (Live)**: [View Frontend Here](https://mellifluous-biscotti-7d3f89.netlify.app/)
 - **🧠 Live Backend API**: [Access Backend](https://africa-risk-api.onrender.com/)
-- **📑 API Documentation (Local Dev)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **📑 API Documentation (Local Dev)**: [Africa-risk-api.onrender docs](https://africa-risk-api.onrender.com/docs)
 - **📽️ Demo Video Presentation**: [Watch the Full Walkthrough](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
 ---
 
@@ -181,7 +181,7 @@ docker-compose up --build
 
 - **🌐 Frontend Dashboard (Live)**: [View Frontend Here](https://mellifluous-biscotti-7d3f89.netlify.app/)
 - **🧠 Live Backend API**: [Access Backend](https://africa-risk-api.onrender.com/)
-- **📑 API Documentation (Local Dev)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **📑 API Documentation (Local Dev)**: [Africa-risk-api.onrender docs](https://africa-risk-api.onrender.com/docs)
 - **📽️ Demo Video Presentation**: [Watch the Full Walkthrough](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
 
 - 
