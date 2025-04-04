@@ -1,8 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import ApiStatus from './ApiStatus';
+import { modelEventService } from '../services/modelEvents';
 
 export default function Layout() {
+  const [recentlyUpdated, setRecentlyUpdated] = useState(false);
+  
+  useEffect(() => {
+    const handleModelEvent = (event) => {
+      if (event.type === 'model_updated') {
+        // Show the indicator for 2 hours after a model update
+        setRecentlyUpdated(true);
+        
+        setTimeout(() => {
+          setRecentlyUpdated(false);
+        }, 7200000); // 2 hours
+      }
+    };
+    
+    const removeListener = modelEventService.addEventListener(handleModelEvent);
+    return () => removeListener();
+  }, []);
+  
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <header className="bg-gray-800 shadow-md">
@@ -30,11 +49,15 @@ export default function Layout() {
             </NavLink>
             <NavLink
               to="/retrain"
-              className={({ isActive }) =>
-                `px-4 py-2 rounded-md ${isActive ? 'bg-blue-600' : 'hover:bg-gray-700'}`
-              }
+              className={({ isActive }) => {
+                const baseClasses = `px-4 py-2 rounded-md relative ${isActive ? 'bg-blue-600' : 'hover:bg-gray-700'}`;
+                return baseClasses;
+              }}
             >
               Retrain
+              {recentlyUpdated && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+              )}
             </NavLink>
           </div>
           <div className="flex justify-end items-center text-sm text-gray-400 px-4">

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -11,7 +11,7 @@ from media_signals import media_signals
 import logging
 from media_intelligence import get_media_intelligence
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import gc  # Add garbage collection
 
 app = FastAPI(title="Africa Conflict Risk API", description="Predict conflict risk and retrain with new data")
@@ -117,8 +117,10 @@ def get_media_signals(country: str, actor: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Media analysis failed: {e}")
 
+# Update the upload-csv endpoint to use background tasks
+
 @app.post("/upload-csv", response_model=dict)
-async def upload_csv(file: UploadFile = File(...)):
+async def upload_csv(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
     """Upload a CSV file for model retraining"""
     try:
         logger.info(f"Received CSV upload: {file.filename}")
@@ -131,7 +133,7 @@ async def upload_csv(file: UploadFile = File(...)):
                 content={"success": False, "error": "File must be a CSV file"}
             )
         
-        # Save the uploaded CSV with timestamp to avoid overwriting
+        # Save the uploaded CSV with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         os.makedirs("uploads", exist_ok=True)
         file_path = f"uploads/{timestamp}_{file.filename}"
@@ -142,13 +144,19 @@ async def upload_csv(file: UploadFile = File(...)):
         logger.info(f"CSV saved to {file_path}, initiating retraining")
         
         # Start retraining process
-        result = await train_model_task(file_path)
-        
-        return {"success": True, "message": "Retraining initiated", "details": result}
+        if background_tasks:
+            # Use background task if provided
+            background_tasks.add_task(train_model_task, file_path)
+            return {"success": True, "message": "Retraining initiated in background"}
+        else:
+            # Otherwise run synchronously (not recommended for production)
+            result = await train_model_task(file_path)
+            return {"success": True, "message": "Retraining completed", "details": result}
+            
     except Exception as e:
         logger.exception(f"Error in CSV upload: {str(e)}")
         return JSONResponse(
-            status_code=500,
+            status_code=500, 
             content={"success": False, "error": f"Retraining failed: {str(e)}"}
         )
 
@@ -170,9 +178,19 @@ def get_categories():
 
 @app.get("/dashboard-data")
 def get_dashboard_data():
-    """Return dashboard data"""
+    """Return dashboard data with latest model information"""
     try:
-        # Make response smaller and simpler
+        # Include the latest model metrics if available
+        metrics = latest_model_metrics if latest_model_metrics else {
+            "accuracy": 0.87,
+            "precision": 0.83,
+            "recall": 0.85,
+            "f1": 0.84
+        }
+        
+        # Add last update time
+        last_updated = latest_model_update_time.isoformat() if latest_model_update_time else None
+        
         return {
             "data": {
                 "risk_by_country": {
@@ -194,12 +212,8 @@ def get_dashboard_data():
                     "incidents": [45, 52, 49, 60, 55, 70],
                     "fatalities": [23, 27, 30, 35, 25, 45]
                 },
-                "model_metrics": {
-                    "accuracy": 0.87,
-                    "precision": 0.83,
-                    "recall": 0.85,
-                    "f1": 0.84
-                }
+                "model_metrics": metrics,
+                "last_model_update": last_updated
             }
         }
     except Exception as e:
@@ -293,29 +307,16 @@ def record_retraining_attempt(success, model_path=None, error=None, metadata=Non
 async def get_retraining_history():
     return {"history": retraining_history}
 
-# Update your model retraining task to record the attempt
-async def train_model_task(csv_path=None):
-    try:
-        # Default to a standard path if none provided
-        if csv_path is None:
-            csv_path = os.path.join(os.path.dirname(__file__), 'data', 'training_data.csv')
-        
-        success, result = retrain_model_from_csv(csv_path)
-        
-        if success:
-            # ... existing code ...
-            latest_model_path = os.path.join(os.path.dirname(__file__), 'models', 'conflict_model_final.pkl')
-            record_retraining_attempt(True, latest_model_path, None, result)
-        else:
-            # ... existing code ...
-            record_retraining_attempt(False, None, result, None)
-        
-    except Exception as e:
-        # ... existing code ...
-        record_retraining_attempt(False, None, str(e), None)
+# Add these variables to store model events and metrics cache
+model_events = []
+latest_model_metrics = None
+latest_model_update_time = None
 
-async def train_model_task(csv_path):
-    """Run model retraining process"""
+# Enhanced train_model_task function with event publishing
+async def train_model_task(csv_path, background_tasks: BackgroundTasks = None):
+    """Run model retraining process with dashboard update"""
+    global latest_model_metrics, latest_model_update_time
+    
     try:
         logger.info(f"Starting model retraining with data from {csv_path}")
         
@@ -329,26 +330,15 @@ async def train_model_task(csv_path):
         # Create necessary directories
         model_dir = os.path.join(os.path.dirname(__file__), 'models')
         os.makedirs(model_dir, exist_ok=True)
-        logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
-        os.makedirs(logs_dir, exist_ok=True)
         
-        # Call your retraining function with timeouts
-        result = retrain_model_from_csv(csv_path)
+        # Call your retraining function
+        success, data = retrain_model_from_csv(csv_path)
         
-        if isinstance(result, tuple) and len(result) == 2:
-            # Handle the case where function returns (success, data)
-            success, data = result
-        else:
-            # Handle the case where function returns just data
-            success = not isinstance(result, Exception)
-            data = result
-        
-        # Record the attempt
         if success:
             model_path = os.path.join(model_dir, 'conflict_model_final.pkl')
             logger.info(f"Model retraining successful, saved to {model_path}")
             
-            # Create metadata file
+            # Create metadata file with timestamp
             metadata = {
                 "created": datetime.now().isoformat(),
                 "training_file": os.path.basename(csv_path),
@@ -367,7 +357,29 @@ async def train_model_task(csv_path):
             with open(os.path.join(model_dir, "latest.json"), "w") as f:
                 json.dump(latest, f, indent=2)
                 
+            # Record the attempt
             record_retraining_attempt(True, model_path, None, metadata)
+            
+            # Update the latest metrics for dashboard
+            latest_model_metrics = {
+                "accuracy": data.get("metrics", {}).get("accuracy", 0),
+                "precision": data.get("metrics", {}).get("precision", 0),
+                "recall": data.get("metrics", {}).get("recall", 0),
+                "f1": data.get("metrics", {}).get("f1", 0)
+            }
+            latest_model_update_time = datetime.now()
+            
+            # Publish model update event
+            model_events.append({
+                "type": "model_updated",
+                "timestamp": datetime.now().isoformat(),
+                "metrics": latest_model_metrics
+            })
+            
+            # Trim events list to keep only recent events
+            if len(model_events) > 100:
+                model_events.pop(0)
+            
             return {"success": True, "message": "Model retraining successful", "details": data}
         else:
             error_msg = str(data) if data else "Unknown error during retraining"
@@ -631,3 +643,24 @@ async def get_retraining_status():
             "message": f"Error checking model status: {str(e)}",
             "last_attempts": retraining_history[-3:] if retraining_history else []
         }
+
+# Add this endpoint to enable clients to poll for model updates
+
+@app.get("/model/events")
+async def get_model_events(since: str = None):
+    """Get model events that have occurred since the given timestamp"""
+    try:
+        # Filter events by timestamp if provided
+        if since:
+            since_dt = datetime.fromisoformat(since)
+            filtered_events = [
+                event for event in model_events 
+                if datetime.fromisoformat(event["timestamp"]) > since_dt
+            ]
+            return {"events": filtered_events}
+        
+        # Return the last 20 events if no timestamp provided
+        return {"events": model_events[-20:]}
+    except Exception as e:
+        logger.error(f"Error retrieving model events: {str(e)}")
+        return {"error": str(e), "events": []}

@@ -76,12 +76,17 @@ export default function Retraining() {
       });
 
       const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error ${response.status}`);
-      }
-      
       setUploadResult(result);
+
+      if (result.success) {
+        // Start polling more frequently to catch the model update quickly
+        modelEventService.startPolling(5000);  // Poll every 5 seconds
+        
+        // Reset to normal polling after 2 minutes
+        setTimeout(() => {
+          modelEventService.startPolling();  // Back to default interval
+        }, 120000);
+      }
       
       // Refresh model status after upload
       await fetchModelStatus();

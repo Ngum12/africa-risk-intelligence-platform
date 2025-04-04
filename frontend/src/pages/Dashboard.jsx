@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 import { fetchDashboardData, fetchModelInfo } from '../services/api';
 import { checkApiStatus } from '../services/apiStatus';
+import { modelEventService } from '../services/modelEvents';
 import HotspotMap from '../components/HotspotMap';
+import ModelUpdateNotification from '../components/ModelUpdateNotification';
+import MapControlPanel from '../components/MapControlPanel';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -71,61 +74,98 @@ export default function Dashboard() {
   const [modelInfo, setModelInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModelUpdate, setShowModelUpdate] = useState(false);
+  const [modelUpdateTime, setModelUpdateTime] = useState(null);
+  const mapRef = useRef(null);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
   
-  useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
+  // Function to load dashboard data
+  async function loadData() {
+    setIsLoading(true);
+    try {
+      // Try using API status check, but don't fail if it doesn't work
       try {
-        // Try using API status check, but don't fail if it doesn't work
-        try {
-          const status = await checkApiStatus();
-          if (!status.ok) {
-            console.warn("API status check failed - continuing anyway");
-          }
-        } catch (statusError) {
-          console.warn("API status check failed:", statusError);
+        const status = await checkApiStatus();
+        if (!status.ok) {
+          console.warn("API status check failed - continuing anyway");
         }
-        
-        // Now fetch data
-        const [dashboardResponse, modelInfoResponse] = await Promise.all([
-          fetchDashboardData(),
-          fetchModelInfo()
-        ]);
-        
-        console.log("Dashboard data received:", dashboardResponse);
-        console.log("Model info received:", modelInfoResponse);
-        
-        // Check if data is valid
-        if (dashboardResponse && dashboardResponse.data) {
-          setDashboardData(dashboardResponse.data);
-        } else {
-          console.warn("Invalid dashboard data format - using defaults");
-          setDashboardData(defaultDashboardData);
-        }
-        
-        if (modelInfoResponse && modelInfoResponse.model_info) {
-          setModelInfo(modelInfoResponse.model_info);
-        } else {
-          console.warn("Invalid model info format - using defaults");
-          setModelInfo(defaultModelInfo);
-        }
-        
-        setError(null);
-      } catch (error) {
-        console.error("Data loading error:", error);
-        setError("Failed to load dashboard data. Using default data instead.");
-        
-        // Use default data instead of showing error
-        setDashboardData(defaultDashboardData);
-        setModelInfo(defaultModelInfo);
-      } finally {
-        setIsLoading(false);
+      } catch (statusError) {
+        console.warn("API status check failed:", statusError);
       }
+      
+      // Now fetch data
+      const [dashboardResponse, modelInfoResponse] = await Promise.all([
+        fetchDashboardData(),
+        fetchModelInfo()
+      ]);
+      
+      console.log("Dashboard data received:", dashboardResponse);
+      console.log("Model info received:", modelInfoResponse);
+      
+      // Check if data is valid
+      if (dashboardResponse && dashboardResponse.data) {
+        setDashboardData(dashboardResponse.data);
+        
+        // Store model update time if available
+        if (dashboardResponse.data?.last_model_update) {
+          setModelUpdateTime(dashboardResponse.data.last_model_update);
+        }
+      } else {
+        console.warn("Invalid dashboard data format - using defaults");
+        setDashboardData(defaultDashboardData);
+      }
+      
+      if (modelInfoResponse && modelInfoResponse.model_info) {
+        setModelInfo(modelInfoResponse.model_info);
+      } else {
+        console.warn("Invalid model info format - using defaults");
+        setModelInfo(defaultModelInfo);
+      }
+      
+      setError(null);
+    } catch (error) {
+      console.error("Data loading error:", error);
+      setError("Failed to load dashboard data. Using default data instead.");
+      
+      // Use default data instead of showing error
+      setDashboardData(defaultDashboardData);
+      setModelInfo(defaultModelInfo);
+    } finally {
+      setIsLoading(false);
     }
-    
+  }
+  
+  // Initial data fetch
+  useEffect(() => {
     loadData();
+  }, []);
+  
+  // Set up model event listener for real-time updates
+  useEffect(() => {
+    // Handle model update events
+    const handleModelEvent = (event) => {
+      if (event.type === 'model_updated') {
+        console.log('Model update detected:', event);
+        
+        // Show notification
+        setShowModelUpdate(true);
+        
+        // Auto-refresh data
+        loadData();
+        
+        // Auto-hide notification after 10 seconds
+        setTimeout(() => {
+          setShowModelUpdate(false);
+        }, 10000);
+      }
+    };
+    
+    // Register event listener and get cleanup function
+    const removeListener = modelEventService.addEventListener(handleModelEvent);
+    
+    // Cleanup
+    return () => removeListener();
   }, []);
 
   if (isLoading) {
@@ -211,6 +251,14 @@ export default function Dashboard() {
 
   return (
     <div className="p-4">
+      {/* Model update notification */}
+      {showModelUpdate && (
+        <ModelUpdateNotification 
+          onDismiss={() => setShowModelUpdate(false)} 
+          timestamp={modelUpdateTime}
+        />
+      )}
+      
       <h1 className="text-3xl font-bold mb-6">Africa Risk Intelligence Dashboard</h1>
       
       {/* Warning banner if using default data */}
@@ -464,8 +512,17 @@ export default function Dashboard() {
       {/* Risk Hotspots Map */}
       <div className="bg-gray-800 rounded-xl p-6 shadow-md mb-6">
         <h2 className="text-xl font-bold mb-4">Risk Hotspots</h2>
-        <div className="h-96 rounded-lg overflow-hidden">
-          <HotspotMap hotspots={hotspots} />
+        <div className="h-96 rounded-lg overflow-hidden relative">
+          <HotspotMap 
+            hotspots={hotspots} 
+            ref={mapRef}
+          />
+          <MapControlPanel 
+            onZoomIn={() => mapRef.current?.zoomIn()}
+            onZoomOut={() => mapRef.current?.zoomOut()}
+            onReset={() => mapRef.current?.resetView()}
+            onToggleHeatmap={() => mapRef.current?.toggleHeatmap()}
+          />
         </div>
       </div>
       

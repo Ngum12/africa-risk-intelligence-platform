@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL, fetchWithTimeout } from '../config/api';
+import { API_URL } from '../config/api';
 
 export default function ApiStatus() {
   const [status, setStatus] = useState('checking');
@@ -10,7 +10,10 @@ export default function ApiStatus() {
       setStatus('checking');
       
       // Try to connect to the API health endpoint
-      const response = await fetchWithTimeout(`${API_URL}/status`, {}, 5000);
+      const response = await fetch(`${API_URL}/status`, { 
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
       
       if (response.ok) {
         const data = await response.json();
