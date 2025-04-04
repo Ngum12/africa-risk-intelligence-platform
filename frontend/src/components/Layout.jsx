@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
+import ApiStatus from './ApiStatus';
 
 export default function Layout() {
   return (
@@ -36,6 +37,9 @@ export default function Layout() {
               Retrain
             </NavLink>
           </div>
+          <div className="flex justify-end items-center text-sm text-gray-400 px-4">
+            <ApiStatus />
+          </div>
         </nav>
       </header>
       
@@ -46,6 +50,9 @@ export default function Layout() {
       <footer className="bg-gray-800 py-4">
         <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
           &copy; {new Date().getFullYear()} Africa Risk Intelligence Platform | Developed by AI Research Team
+        </div>
+        <div className="flex justify-end items-center text-sm text-gray-400 px-4">
+          <ApiStatus />
         </div>
       </footer>
     </div>

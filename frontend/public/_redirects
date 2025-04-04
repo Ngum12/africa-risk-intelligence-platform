@@ -1,1 +1,4 @@
-/*    /index.html   200
+# Redirect API requests to backend
+/api/*  https://africa-risk-api.onrender.com/:splat  200
+# Handle SPA routing
+/*      /index.html     200

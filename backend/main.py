@@ -19,19 +19,32 @@ app = FastAPI(title="Africa Conflict Risk API", description="Predict conflict ri
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://mellifluous-biscotti-7d3f89.netlify.app",
         "https://visionary-elf-d34048.netlify.app", 
         "https://sparkly-choux-2933f0.netlify.app",  # Add your new domain
-        "http://localhost:5173"
+        "http://localhost:5173",
+        # Add a wildcard as fallback
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
+    # Add this to ensure preflight requests work correctly
+    allow_origin_regex="https://.*\.netlify\.app"
 )
 
 @app.middleware("http")
 async def add_gc_middleware(request, call_next):
     response = await call_next(request)
     gc.collect()  # Force garbage collection after each request
+    return response
+
+# Add this to ensure CORS headers are correctly applied
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    response = await call_next(request)
+    if request.headers.get("origin"):
+        response.headers["Access-Control-Allow-Origin"] = "*"
     return response
 
 logging.basicConfig(level=logging.INFO)

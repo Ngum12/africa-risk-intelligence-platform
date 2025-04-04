@@ -2,3 +2,9 @@
   Content-Type: text/javascript
 /*.css
   Content-Type: text/css
+
+# Allow CORS preflight requests
+/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization

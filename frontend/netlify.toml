@@ -9,10 +9,21 @@
     Content-Type = "text/css"
 
 [build]
-  publish = "dist"
   command = "npm run build"
+  publish = "dist"
+  
+[build.environment]
+  # Use production API URL
+  VITE_API_URL = "https://africa-risk-api.onrender.com"
 
-# Handle SPA routing
+# Handle API requests during local Netlify development
+[[redirects]]
+  from = "/api/*"
+  to = "https://africa-risk-api.onrender.com/:splat"
+  status = 200
+  force = true
+
+# SPA redirect for React Router
 [[redirects]]
   from = "/*"
   to = "/index.html"

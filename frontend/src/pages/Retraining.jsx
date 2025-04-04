@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../config/api';
+import { API_URL, fetchWithTimeout } from '../config/api';
 
 export default function Retraining() {
   const [file, setFile] = useState(null);
@@ -21,14 +21,24 @@ export default function Retraining() {
   async function fetchModelStatus() {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_URL}/model/retraining-status`);
+      const response = await fetchWithTimeout(`${API_URL}/model/retraining-status`);
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
       const data = await response.json();
       setModelStatus(data);
       setError(null);
     } catch (err) {
       console.error("Error fetching model status:", err);
-      setError("Failed to load model status");
+      setError(err.message || "Failed to connect to API");
+      
+      // Set default model status so UI can still render
+      setModelStatus({
+        status: "unknown",
+        message: "Cannot connect to backend",
+        model_size_mb: 0,
+        last_modified: null,
+        metadata: null,
+        last_attempts: []
+      });
     } finally {
       setIsLoading(false);
     }
