@@ -95,11 +95,13 @@ graph TD
 |--------|-------|--------------------------------|
 | Prediction Accuracy | 89.4% | +12.3% |
 | API Response Time | <250ms | 5× faster |
-| Concurrent Users | 10,000+ | 3× capacity |
-| Time to Insight | <5 seconds | 10× improvement |
-| False Positive Rate | 7.2% | -15.6% |
-| Data Refresh Rate | Real-time | vs. 24hr industry avg. |
 
+### Access the Platform
+
+- **🌐 Frontend Dashboard (Live)**: [View Frontend Here](https://mellifluous-biscotti-7d3f89.netlify.app/)
+- **🧠 Live Backend API**: [Access Backend](https://africa-risk-api.onrender.com/)
+- **📑 API Documentation (Local Dev)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **📽️ Demo Video Presentation**: [Watch the Full Walkthrough](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
 ---
 
 ## 📦 Project Structure
@@ -177,9 +179,11 @@ docker-compose up --build
 
 ### Access the Platform
 
-- **Frontend Dashboard**: [http://localhost:5173](http://localhost:5173)
-- **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **📽️ Demo Video**: [Watch the full video presentation](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
+- **🌐 Frontend Dashboard (Live)**: [View Frontend Here](https://mellifluous-biscotti-7d3f89.netlify.app/)
+- **🧠 Live Backend API**: [Access Backend](https://africa-risk-api.onrender.com/)
+- **📑 API Documentation (Local Dev)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **📽️ Demo Video Presentation**: [Watch the Full Walkthrough](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
+
 - 
 ### Load Testing
 
@@ -307,11 +311,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Contact & Support
 
-- **Website**: [www.africa-risk-platform.org](https://www.africa-risk-platform.org)
-- **Email**: support@africa-risk-platform.org
-- **Issue Tracker**: [GitHub Issues](https://github.com/your-username/africa-risk-intelligence-platform/issues)
-- **Documentation**: [ReadTheDocs](https://africa-risk-platform.readthedocs.io/)
-
+- **Website**: [www.africa-risk-platform.org](https://mellifluous-biscotti-7d3f89.netlify.app/)
 ---
 
 <p align="center">
@@ -319,5 +319,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 </p>
 
 <p align="center">
-  Made with ❤️ by engineers committed to humanitarian technology
+  Made with ❤️ by Ngum, Will take this to the sky for the cape stone.
 </p>
