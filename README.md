@@ -179,10 +179,8 @@ docker-compose up --build
 
 - **Frontend Dashboard**: [http://localhost:5173](http://localhost:5173)
 - **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Demo Credentials**: 
-  - Email: `demo@arip.com`
-  - Password: `demo123`
-
+- **📽️ Demo Video**: [Watch the full video presentation](https://drive.google.com/drive/folders/1PnIveGT-pdrPifQtCEq_JRwZ579K74cJ)
+- 
 ### Load Testing
 
 ```bash
