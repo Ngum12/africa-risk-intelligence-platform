@@ -43,7 +43,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🌐 Comprehensive Intelligence Dashboard
 
-![Image](https://github.com/user-attachments/assets/e310e7bc-4171-44ae-915b-ae7ec022a9d7)
+![Image](https://github.com/user-attachments/assets/fdf218da-7d88-4fc7-a6ff-f6935808e865)
 
 - **Interactive Crisis Map**: High-definition visualization with temporal analysis and historical context
 - **Risk Factor Breakdown**: Detailed insights into the specific drivers of conflict in each region
@@ -61,7 +61,7 @@ ARIP represents a paradigm shift in continental security assessment, bringing to
 
 ### 🛠️ Model Training & Optimization
 
-![Image](https://github.com/user-attachments/assets/852e7be5-1a0f-49b6-a2ea-0ed59c63035f)
+![Image](https://github.com/user-attachments/assets/82ccca77-6e97-4497-899e-ccc1547ef419)
 
 - **Custom Dataset Upload**: Enhance model accuracy with organization-specific data
 - **Performance Metrics Dashboard**: Track model improvement across accuracy, precision, recall, and F1 score
